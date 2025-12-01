@@ -1,0 +1,285 @@
+
+╔════════════════════════════════════════════════════════════════════════════╗
+║                         QUICK START REFERENCE                             ║
+║                                                                            ║
+║               Career Compass Multi-Agent System                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+📋 INSTALLATION (First Time Setup)
+═════════════════════════════════════════════════════════════════════════════
+
+1. Create virtual environment
+   $ python -m venv venv
+   $ source venv/bin/activate          # On Windows: venv\Scripts\activate
+
+2. Install dependencies
+   $ pip install -r requirements.txt
+
+3. Setup configuration
+   $ cp .env.example .env
+   $ # Edit .env with your GOOGLE_API_KEY
+
+4. Verify installation
+   $ python -c "from orchestrator_agent import OrchestratorAgent; print('✓ Ready')"
+
+
+🚀 RUNNING THE SYSTEM
+═════════════════════════════════════════════════════════════════════════════
+
+INTERACTIVE MODE (Get recommendations for yourself):
+   $ python main.py interactive
+   → Answer 5 questions about your career
+   → Get personalized job matches
+   → See detailed match explanations
+
+DEMO MODE (Test with predefined profiles):
+   $ python main.py demo
+   → Processes 3 test profiles
+   → Shows how system works
+   → Saves results to batch_test_results.json
+
+TEST MODE (Verify implementation):
+   $ python main.py test
+   → Runs 31+ unit and integration tests
+   → Shows coverage and performance
+   → Verifies all agents working correctly
+
+PROGRAMMATIC API:
+   $ python
+   >>> from orchestrator_agent import OrchestratorAgent
+   >>> orch = OrchestratorAgent()
+   >>> orch.process_quiz_response("I'm a technical leader", "Q1")
+   >>> matches = orch.get_top_matches(top_n=5)
+
+
+📁 KEY FILES
+═════════════════════════════════════════════════════════════════════════════
+
+AGENTS (Core Logic):
+• profiler_agent.py      - Parse user responses, extract traits
+• scout_agent.py         - Search for jobs based on profile
+• analyst_agent.py       - Score and rank jobs
+• orchestrator_agent.py  - Coordinate agents and manage state
+
+APPLICATION:
+• main.py                - Entry point and CLI
+• test_agents.py         - Test suite (31+ tests)
+
+CONFIGURATION:
+• config.py              - Global settings
+• utils.py               - Shared utilities
+• requirements.txt       - Python dependencies
+• .env                   - Your API keys (create from .env.example)
+
+
+🧪 TESTING
+═════════════════════════════════════════════════════════════════════════════
+
+Run all tests:
+   $ pytest test_agents.py -v
+
+Run specific test class:
+   $ pytest test_agents.py::TestProfilerAgent -v
+
+Run with coverage:
+   $ pytest test_agents.py --cov=profiler_agent --cov=scout_agent
+
+Expected output:
+   test_agents.py::TestProfilerAgent::test_profiler_initialization PASSED
+   test_agents.py::TestScoutAgent::test_search_tool_initialization PASSED
+   ...
+   ======================== 31 passed in 2.5s ========================
+
+
+💻 USAGE EXAMPLES
+═════════════════════════════════════════════════════════════════════════════
+
+1. Get recommendations for a tech leader:
+   $ python main.py interactive
+   Q1: Tell me about a success
+   > I led a team of engineers through critical project
+   Q2: How handle pressure?
+   > I stay calm, break problems into pieces
+   Q3: Ideal work environment?
+   > Fast-paced startup where I can wear multiple hats
+   [Results] Match: Senior Technical Lead, Tech Director, etc.
+
+2. Test with predefined profiles:
+   $ python main.py demo
+   ✓ Processing Profile 1/3: Tech Leader
+   ✓ Found 5 top matches
+   ✓ Processing Profile 2/3: Emergency Responder
+   ✓ Found 5 top matches
+   ✓ Processing Profile 3/3: Creative Designer
+   ✓ Found 5 top matches
+   ✓ Results saved to batch_test_results.json
+
+3. Use in your Python code:
+   ```python
+   from orchestrator_agent import OrchestratorAgent
+
+   # Create system
+   compass = OrchestratorAgent()
+
+   # Process user responses
+   for response in ["I'm a leader", "I handle pressure well"]:
+       result = compass.process_quiz_response(response, "Question")
+       print(f"Status: {result['status']}")
+
+   # Get results
+   state = compass.get_current_state()
+   matches = compass.get_top_matches(top_n=3)
+
+   for match in matches:
+       print(f"{match['job_title']} - {match['match_percentage']}%")
+   ```
+
+
+🔧 TROUBLESHOOTING
+═════════════════════════════════════════════════════════════════════════════
+
+Problem: "ModuleNotFoundError: No module named 'langchain'"
+Solution: $ pip install -r requirements.txt
+
+Problem: "Error: GOOGLE_API_KEY not set"
+Solution: 
+   1. Get key from https://aistudio.google.com/app/apikeys
+   2. Copy to .env: GOOGLE_API_KEY=your_key_here
+   3. Restart Python/terminal
+
+Problem: "Tests fail with 'Failed to parse JSON response'"
+Solution: This is expected with mock data. The system gracefully falls back.
+   The fallback extraction will still work and produce valid results.
+
+Problem: "Port already in use"
+Solution: Change port in config.py or kill the process:
+   $ lsof -i :5000
+   $ kill -9 <PID>
+
+
+📊 ARCHITECTURE OVERVIEW
+═════════════════════════════════════════════════════════════════════════════
+
+User Input
+    ↓
+Profiler Agent (Chain-of-Thought Reasoning)
+    ├─ Parse natural language
+    ├─ Extract traits (leadership, resilience, etc.)
+    └─ Maintain conversation memory
+    ↓
+Scout Agent (Function Calling)
+    ├─ Decide when to search (autonomous)
+    ├─ Generate search queries from traits
+    └─ Call SearchTool for job listings
+    ↓
+Analyst Agent (Data Synthesis)
+    ├─ Calculate compatibility scores
+    ├─ Rank jobs by fit
+    └─ Generate explanations
+    ↓
+Results to User
+    ├─ Top 5 matched jobs
+    ├─ Match percentages
+    ├─ Why each job fits
+    └─ Market availability (applicant count)
+
+
+🎯 CORE CONCEPTS
+═════════════════════════════════════════════════════════════════════════════
+
+1. CHAIN-OF-THOUGHT REASONING
+   • Profiler breaks down complex responses
+   • LLM thinks through trait extraction
+   • Structured JSON output
+   • Example: "I overcome challenges" → resilience: high
+
+2. FUNCTION CALLING
+   • Scout decides autonomously when to search
+   • Calls SearchTool with smart queries
+   • Example: traits → search queries → job results
+
+3. DATA SYNTHESIS
+   • Analyst combines user profile + job description
+   • Calculates compatibility scores
+   • Ranks and explains results
+   • Example: (user_traits + job_traits) → 85% match
+
+4. STATE MANAGEMENT
+   • All data flows through OrchestratorState
+   • Persistent conversation history
+   • Error recovery and session replay
+   • Example: Full workflow captured for analysis
+
+
+📞 GETTING HELP
+═════════════════════════════════════════════════════════════════════════════
+
+1. Check README.md for detailed documentation
+2. Review docstrings in the code:
+   $ python -c "from profiler_agent import ProfilerAgent; help(ProfilerAgent)"
+3. Check test_agents.py for usage examples
+4. Review PROJECT_SUMMARY.txt for architecture details
+
+
+⚡ PERFORMANCE TIPS
+═════════════════════════════════════════════════════════════════════════════
+
+• Profile processing: ~1-2 seconds per response
+• Job search: ~2-3 seconds
+• Ranking 5 jobs: ~1 second
+• Total workflow: ~5-8 seconds
+
+To speed up:
+• Use mock data (default) vs. real API
+• Reduce MAX_SEARCH_RESULTS in config.py
+• Process profiles in batch (run_batch_test mode)
+
+
+🔐 SECURITY
+═════════════════════════════════════════════════════════════════════════════
+
+• Never commit .env with real API keys
+• Use environment variables in production
+• All data processed locally (no external storage)
+• HTTPS recommended for deployment
+
+
+📈 NEXT STEPS
+═════════════════════════════════════════════════════════════════════════════
+
+1. Understand the system:
+   ✓ Read README.md
+   ✓ Review PROJECT_SUMMARY.txt
+   ✓ Run python main.py interactive
+
+2. Test the system:
+   ✓ pytest test_agents.py -v
+   ✓ python main.py demo
+
+3. Integrate with frontend:
+   ✓ Create Flask/FastAPI wrapper
+   ✓ Expose OrchestratorAgent via REST API
+   ✓ Connect React frontend
+
+4. Deploy:
+   ✓ Containerize with Docker
+   ✓ Deploy to Google Cloud Run
+   ✓ Set environment variables
+
+5. Extend:
+   ✓ Add real job APIs
+   ✓ Implement Recruiter Agent
+   ✓ Add resume parsing
+
+
+═════════════════════════════════════════════════════════════════════════════
+
+Questions? Check the documentation:
+• README.md          - Full documentation
+• PROJECT_SUMMARY.txt - Architecture details
+• test_agents.py     - Usage examples
+• Docstrings         - In-code documentation
+
+Happy job matching! 🚀
+
+═════════════════════════════════════════════════════════════════════════════
